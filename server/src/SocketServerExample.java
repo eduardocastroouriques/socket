@@ -26,23 +26,8 @@ public class SocketServerExample {
 				
 			}
 		};
-		
-		Runnable client = new Runnable() {
-			@Override
-			public void run() {
-				 try {
-					 new SocketClientExample().startClient();
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
-			}
-		};
+
        new Thread(server).start();
-       new Thread(client, "client-A").start();
-       new Thread(client, "client-B").start();
     }
 
     public SocketServerExample(String address, int port) throws IOException {
