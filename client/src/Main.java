@@ -1,7 +1,7 @@
 import java.io.IOException;
 
-public class Client {
+public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
-        new SocketClientExample().startClient();
+        new SocketClient().startClient();
     }
 }

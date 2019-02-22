@@ -9,7 +9,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-public class SocketServerExample {
+public class SocketServer {
 	private Selector selector;
     private Map<SocketChannel,List<byte[]>> dataMapper;
     private InetSocketAddress listenAddress;
@@ -19,18 +19,18 @@ public class SocketServerExample {
 			@Override
 			public void run() {
 				 try {
-					new SocketServerExample("127.0.0.1", 9999).startServer();
+					new SocketServer("127.0.0.1", 3345).startServer();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				
+
 			}
 		};
 
        new Thread(server).start();
     }
 
-    public SocketServerExample(String address, int port) throws IOException {
+    public SocketServer(String address, int port) throws IOException {
     	listenAddress = new InetSocketAddress(address, port);
         dataMapper = new HashMap<SocketChannel,List<byte[]>>();
     }
@@ -44,7 +44,6 @@ public class SocketServerExample {
         // retrieve server socket and bind to port
         serverChannel.socket().bind(listenAddress);
         serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
-//        serverChannel.register(this.selector, SelectionKey.OP_WRITE);
 
         System.out.println("CTF Server started...");
 
@@ -70,9 +69,8 @@ public class SocketServerExample {
                 }
                 else if (key.isReadable()) {
                     this.read(key);
-                }
-                else if(key.isWritable()){
-                    this.write(key);
+                } else if (key.isWritable()){
+                    System.out.println("WARNING: CTFServer does not implement writable");
                 }
             }
         }
@@ -92,26 +90,37 @@ public class SocketServerExample {
         channel.register(this.selector, SelectionKey.OP_READ);
     }
 
-    private void write(SelectionKey key) throws IOException {
+    private void write(SelectionKey key, byte[] request) throws IOException {
 
-        String data = "Eduardo envia";
+        String operacao = OperacaoUtil.get(new String(request));
+        String response = null;
 
-        ByteBuffer buffer = ByteBuffer.allocate(40);
-        buffer.clear();
+        if(operacao.equals(Operacao.UMF.toString())){
+            response = new UmfService().getSucesso();
+        } else if(operacao.equals(Operacao.CREDITO.toString())){
+            response = new CreditoService().getSucesso();
+        } else if(operacao.equals(Operacao.CONFIRMACAO.toString())){
+            response = new ConfirmacaoService().getSucesso();
+        }
 
-        buffer.put(data.getBytes());
+        ByteBuffer buffer = ByteBuffer.wrap(response.getBytes());
+//        buffer.clear();
+
+        buffer.put(response.getBytes());
         buffer.flip();
 
-        while (buffer.hasRemaining()){
+        //while (buffer.hasRemaining()){
+            System.out.println("Resposta ao CTFClient: " + new String(response));
             SocketChannel channel = (SocketChannel) key.channel();
             channel.write(buffer);
-        }
+        //}
+        buffer.clear();
     }
 
     //read from the socket channel
     private void read(SelectionKey key) throws IOException {
         SocketChannel channel = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteBuffer buffer = ByteBuffer.allocate(9999);
         int numRead = -1;
         numRead = channel.read(buffer);
 
@@ -128,9 +137,9 @@ public class SocketServerExample {
 
         byte[] data = new byte[numRead];
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
-        System.out.println("Requisicao ao CTF Server: " + new String(data));
+        System.out.println("Requesicao do CTFClient: " + new String(data));
 
-        this.write(key);
+        this.write(key, data);
 
     }
 }
