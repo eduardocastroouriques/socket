@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/NioSocketExample.iml" filepath="$PROJECT_DIR$/NioSocketExample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CTFServer.iml" filepath="$PROJECT_DIR$/CTFServer.iml" />
     </modules>
   </component>
 </project>
