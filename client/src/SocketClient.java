@@ -30,10 +30,11 @@ public class SocketClient {
             ByteBuffer buffer = ByteBuffer.wrap(message);
             client.write(buffer);
             System.out.println("Requisicao ao CTFServer: " + messages [i]);
+            this.readAnswer(client);
             buffer.clear();
-            Thread.sleep(20000);
+//            Thread.sleep(20000);
         }
-        this.readAnswer(client);
+
     }
 
     private void accept(SelectionKey key, Selector selector) throws IOException {
@@ -48,7 +49,7 @@ public class SocketClient {
         channel.register(selector, SelectionKey.OP_READ);
     }
 
-    private void read(SelectionKey key) throws IOException {
+    private boolean read(SelectionKey key) throws IOException {
         SocketChannel channel = (SocketChannel) key.channel();
         ByteBuffer buffer = ByteBuffer.allocate(9999);
         int numRead = -1;
@@ -61,17 +62,18 @@ public class SocketClient {
 
             channel.close();
             key.cancel();
-            return;
+            return false;
         }
 
         byte[] data = new byte[numRead];
         System.arraycopy(buffer.array(), 0, data, 0, numRead);
         buffer.clear();
         System.out.println("Resposta do CTF Server: " + new String(data));
+        return false;
 
     }
 
-    private void readAnswer(SocketChannel client) throws IOException {
+    private boolean readAnswer(SocketChannel client) throws IOException {
 
         Selector selector = Selector.open();
         client.configureBlocking(false);
@@ -95,7 +97,7 @@ public class SocketClient {
                 if (key.isAcceptable()) {
                     this.accept(key, selector);
                 } else if (key.isReadable()) {
-                    this.read(key);
+                    return this.read(key);
                 } else {
                     client.close();
                 }
@@ -105,4 +107,3 @@ public class SocketClient {
     }
 
 }
-
